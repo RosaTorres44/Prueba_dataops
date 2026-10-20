@@ -33,7 +33,7 @@ rama de la fase ──► Pull Request ─────────────�
  2. Despliegue del modelo crea las tablas desde el código
  3. Ingesta Bronze        guarda el dato crudo
  4. Calidad de datos      válidos → Silver · con error → tabla de rechazados (con motivo)
- 5. Gold                  indicador por país (nombre y región), solo mayores de edad
+ 5. Gold                  % de contactables por país (nombre y región), sin email
  6. Monitoreo             cada stage deja registro de su ejecución
 ```
 

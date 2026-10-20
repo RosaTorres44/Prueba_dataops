@@ -1,12 +1,34 @@
 # macOS
 .DS_Store
 
-# Environment & Virtualenv
+# Environments & Virtual Environments
 .env
+.envrc
 .venv/
 venv/
+ENV/
+env/
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[codz]
+*$py.class
+*.so
 
 # Logs
 *.log
+logs/
+
+# Unit test / coverage reports
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor / IDE
+.vscode/
+.idea/
+.cursorignore
+.cursorindexingignore
+
+# DataOps / Temp
+*.tmp
