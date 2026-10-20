@@ -1,34 +1,44 @@
-name: DataOps Pipeline - Base
+name: DataOps Pipeline – Bronze
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths:
+      - "data/**"
+      - "framework/ingestion/**"
+      - ".github/workflows/dataops-pipeline.yml"
 
 jobs:
-  lifecycle:
+  bronze-ingestion:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show framework structure
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: |
-          echo "📂 Data & Analytics lifecycle structure:"
-          tree framework || ls framework
+          python -m pip install --upgrade pip
+          pip install databricks-sql-connector
 
-      - name: Ingestion stage (placeholder)
-        run: echo "Ingestion stage - pending implementation"
-
-      - name: Processing stage (placeholder)
-        run: echo "Processing stage - pending implementation"
-
-      - name: Validation & Testing stage (placeholder)
-        run: echo "Validation & Testing stage - pending implementation"
-
-      - name: Deployment stage (placeholder)
-        run: echo "Deployment stage - pending implementation"
-
-      - name: Continuous Monitoring stage (placeholder)
-        run: echo "Monitoring stage - pending implementation"
+      - name: Ingest Bronze into Databricks SQL
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          CSV_PATH: data/source/customers.csv
+          TARGET_TABLE: demo.bronze_customers
+          SOURCE_NAME: github_actions
+        run: |
+          echo "PWD:"
+          pwd
+          echo "Listing repo root:"
+          ls -la
+          echo "Running bronze ingestion..."
+          python framework/ingestion/ingest_bronze.py
