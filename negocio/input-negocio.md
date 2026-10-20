@@ -17,6 +17,7 @@
 
 ## Lo que completamos en clase
 
-- ¿Cuál es la meta del indicador de Carmen? (por ejemplo, pasar de X % a Y %): ______
-- Cuando hay un duplicado, ¿cuál registro manda?: ______
-- ¿Qué pasa si una regla de calidad falla un lunes: se detiene la carga o se envía con advertencia?: ______
+- ¿Cuál es la meta del indicador de Carmen? (por ejemplo, pasar de X % a Y %): Alcanzar al menos un 80% de clientes contactables sobre el padrón activo en Silver (frente a la línea base estimada de ~50% en el origen).
+- Cuando hay un duplicado, ¿cuál registro manda?: Si son duplicados totales (todos los campos idénticos), se conserva uno en Silver y los demás van a la tabla de rechazados. Si comparten customer_id pero difieren en al menos un campo (conflicto de identidad), se rechazan todos los registros involucrados y van a la tabla de rechazados para corrección en origen.
+- ¿Qué pasa si una regla de calidad falla un lunes: se detiene la carga o se envía con advertencia?: Se aplica una política de umbral: si el porcentaje de registros rechazados supera el 20%, el pipeline falla (Stage 4) y detiene la carga alertando al equipo antes de publicar Gold. Si es menor o igual al 20%, los registros limpios continúan a Silver y Gold, los rechazados se almacenan con motivo en la tabla de rechazados y se registra una advertencia en el monitoreo.
+

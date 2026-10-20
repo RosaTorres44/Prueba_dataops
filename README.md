@@ -194,6 +194,34 @@ Ejecuta lo que dice `validacion.md` (por ejemplo, las consultas en el SQL Editor
 
 ✅ Checkpoint: cada criterio de `validacion.md` está marcado como cumplido.
 
+### Scripts y Componentes de la Fase 1
+
+| Archivo | Qué hace | En qué stage corre |
+|---|---|---|
+| `framework/validation/validate_contract.py` | Valida contrato del CSV (cabeceras, tipos y diagnóstico de anomalías en origen) | Stage 1 · Shift-Left |
+| `framework/tests/test_source_contract.py` | Suite de tests automatizados con `pytest` para CI/CD (CA-01, CA-02, CA-03) | Stage 1 · Shift-Left |
+| `framework/deployment/sql/01_create_ref_countries.sql` | DDL idempotente para la tabla dimensional de países y regiones | Stage 2 · Despliegue del Modelo |
+| `framework/deployment/sql/02_seed_ref_countries.sql` | `MERGE INTO` con los 5 países maestros (PE, CL, CO, MX, AR) | Stage 2 · Despliegue del Modelo |
+| `framework/deployment/sql/03_create_bronze_customers.sql` | DDL idempotente para la capa Bronze con metadatos de auditoría | Stage 2 · Despliegue del Modelo |
+| `framework/deployment/sql/04_create_silver_customers.sql` | DDL idempotente para la capa Silver con banderas de contacto y mayoría de edad | Stage 2 · Despliegue del Modelo |
+| `framework/deployment/sql/05_create_rejected_customers.sql` | DDL idempotente para la tabla de aislamiento de anomalías de calidad | Stage 2 · Despliegue del Modelo |
+| `framework/deployment/sql/06_create_gold_customers_kpi.sql` | DDL idempotente para la capa Gold con métricas agregadas por país y región (sin PII) | Stage 2 · Despliegue del Modelo |
+| `framework/deployment/deploy_model.py` | Conecta con Databricks SQL Warehouse, ejecuta los DDLs y verifica el catálogo (CA-04 a CA-07) | Stage 2 · Despliegue del Modelo |
+| `.github/workflows/ci-pr-phase1.yml` | Workflow de CI/CD que orquesta Stage 1 y Stage 2 ante cada Pull Request | CI en GitHub Actions |
+
+**Ejecución local de pruebas:**
+```bash
+# Instalar dependencias
+pip install -r requirements-dev.txt
+
+# Ejecutar validación shift-left
+python framework/validation/validate_contract.py
+
+# Ejecutar tests unitarios
+pytest framework/tests/test_source_contract.py -v
+```
+
+
 ### 8. Repite con la fase 2
 
 Vuelve al paso 5 con la fase 2 del roadmap. Son solo dos fases: la **fase 1** (diseño, modelado y calidad shift-left) y la **fase 2** (pipeline de punta a punta: Bronze, calidad y rechazados, Gold y monitoreo). Cada una tiene su propia rama y su propio Pull Request. Al terminar la fase 2, el pipeline completo corre con solo tus 3 secrets.

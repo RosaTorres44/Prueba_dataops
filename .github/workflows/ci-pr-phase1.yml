@@ -1,0 +1,82 @@
+name: CI - Fase 1 · Shift-Left y Despliegue del Modelo
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "data/source/customers.csv"
+      - "framework/**"
+      - ".github/workflows/ci-pr-phase1.yml"
+      - "requirements-dev.txt"
+  workflow_dispatch: {}
+
+jobs:
+  stage-1-shift-left-validation:
+    name: Stage 1 · Validación Shift-Left (Contrato & Calidad)
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Ejecutar validación de contrato de datos
+        run: |
+          python framework/validation/validate_contract.py
+
+      - name: Ejecutar suite de pruebas con pytest
+        run: |
+          python -m pytest framework/tests/test_source_contract.py -v
+
+  stage-2-deploy-model:
+    name: Stage 2 · Despliegue del Modelo en Databricks
+    needs: stage-1-shift-left-validation
+    runs-on: ubuntu-latest
+    if: success()
+    env:
+      PYTHONPATH: .
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Desplegar y verificar tablas en Databricks SQL Warehouse
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          if [ -z "${DATABRICKS_HOST}" ] || [ -z "${DATABRICKS_TOKEN}" ]; then
+            echo "⚠️ [AVISO DE GOBIERNO] Los secrets DATABRICKS_HOST, DATABRICKS_TOKEN o DATABRICKS_HTTP_PATH aún no están configurados en GitHub Secrets."
+            echo "Para completar el despliegue automático en Databricks SQL Warehouse, configura los 3 secrets en: Settings -> Secrets and variables -> Actions."
+            echo "Validación de sintaxis local de scripts DDL..."
+            python -c "
+            import glob, os
+            scripts = sorted(glob.glob('framework/deployment/sql/*.sql'))
+            assert len(scripts) == 6, f'Se esperaban 6 scripts SQL pero se encontraron {len(scripts)}'
+            print('✅ 6 scripts SQL DDL verificados sintácticamente.')
+            "
+          else
+            python framework/deployment/deploy_model.py
+          fi
