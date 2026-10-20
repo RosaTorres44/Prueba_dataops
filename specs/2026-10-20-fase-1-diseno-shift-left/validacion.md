@@ -29,32 +29,32 @@ Los siguientes criterios determinan si la Fase 1 está completada con éxito y a
 ## Lista de Casillas de Verificación (Checklist)
 
 ### 1. Validación Shift-Left en Local y Runner (Stage 1)
-- [ ] **[CA-01] Existencia del archivo fuente**:
+- [x] **[CA-01] Existencia del archivo fuente**:
   - *Comando*: `pytest framework/tests/test_source_contract.py::test_source_file_exists -v`
   - *Resultado esperado*: `PASSED`
   - *Efecto si falla*: **Bloquea el merge**.
-- [ ] **[CA-02] Conformidad del contrato de columnas**:
+- [x] **[CA-02] Conformidad del contrato de columnas**:
   - *Comando*: `pytest framework/tests/test_source_contract.py::test_source_headers -v`
   - *Resultado esperado*: `PASSED` (valida la presencia exacta de `customer_id`, `name`, `age`, `country`, `email` en la fila 1).
   - *Efecto si falla*: **Bloquea el merge**.
-- [ ] **[CA-03] Reporte de salud y anomalías previas a la ingesta**:
+- [x] **[CA-03] Reporte de salud y anomalías previas a la ingesta**:
   - *Comando*: `python framework/validation/validate_contract.py`
   - *Resultado esperado*: Retorna JSON o log estructurado identificando las 21 filas analizadas y cuantificando las anomalías detectadas en origen para retroalimentar la Fase 2.
   - *Efecto si falla*: **Advertencia** (los datos sucios son esperados en origen, pero el script de escaneo debe culminar sin excepciones no controladas).
 
 ### 2. Despliegue del Modelo en Databricks SQL Warehouse (Stage 2)
-- [ ] **[CA-04] Ejecución DDL automatizada e idempotente**:
+- [x] **[CA-04] Ejecución DDL automatizada e idempotente**:
   - *Comando*: `python framework/deployment/deploy_model.py`
   - *Resultado esperado*: `Exit code 0`. Registra la ejecución secuencial de `01_create_ref_countries.sql`, `02_seed_ref_countries.sql`, `03_create_bronze_customers.sql`, `04_create_silver_customers.sql`, `05_create_rejected_customers.sql` y `06_create_gold_customers_kpi.sql`.
   - *Efecto si falla*: **Bloquea el merge**.
-- [ ] **[CA-05] Conteo exacto de países en catálogo maestro**:
+- [x] **[CA-05] Conteo exacto de países en catálogo maestro**:
   - *Comprobación*:
     ```sql
     SELECT COUNT(*) AS total_paises FROM demo.ref_countries;
     ```
   - *Resultado esperado*: `total_paises = 5`.
   - *Efecto si falla*: **Bloquea el merge**.
-- [ ] **[CA-06] Verificación de códigos ISO y regiones**:
+- [x] **[CA-06] Verificación de códigos ISO y regiones**:
   - *Comprobación*:
     ```sql
     SELECT country_code, country_name, region FROM demo.ref_countries ORDER BY country_code;
@@ -68,7 +68,7 @@ Los siguientes criterios determinan si la Fase 1 está completada con éxito y a
     | `MX` | México | Norteamérica |
     | `PE` | Perú | Sudamérica |
   - *Efecto si falla*: **Bloquea el merge**.
-- [ ] **[CA-07] Verificación de tablas en el schema `demo`**:
+- [x] **[CA-07] Verificación de tablas en el schema `demo`**:
   - *Comprobación*:
     ```sql
     SHOW TABLES IN demo;
@@ -82,14 +82,15 @@ Los siguientes criterios determinan si la Fase 1 está completada con éxito y a
   - *Efecto si falla*: **Bloquea el merge**.
 
 ### 3. Gobernanza y Flujo de Integración Continua
-- [ ] **[CA-08] Verificación de seguridad de credenciales**:
+- [x] **[CA-08] Verificación de seguridad de credenciales**:
   - *Comprobación*: Inspección de git diff en el Pull Request.
   - *Resultado esperado*: Ningún token, host o path hardcodeado. Todas las conexiones utilizan `os.environ` y GitHub Secrets (`DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_HTTP_PATH`).
   - *Efecto si falla*: **Bloquea el merge**.
-- [ ] **[CA-09] Workflow de GitHub Actions en verde**:
+- [x] **[CA-09] Workflow de GitHub Actions en verde**:
   - *Comprobación*: Pestaña "Actions" en el Pull Request de la rama `fase-1-diseno-shift-left`.
   - *Resultado esperado*: `ci-pr-phase1` culmina con éxito total en ambos jobs (Stage 1 y Stage 2).
   - *Efecto si falla*: **Bloquea el merge**.
+
 
 ---
 
